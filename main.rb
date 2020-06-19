@@ -6,7 +6,7 @@ require 'json'
 require 'config'
 require 'dry/validation'
 
-require_relative 'config/config'
+require_relative 'lib/config'
 require_relative 'lib/result'
 require_relative 'lib/message_formatter'
 require_relative 'plugins/loader'
