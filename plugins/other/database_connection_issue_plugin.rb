@@ -4,8 +4,8 @@ module Plugins
   module Other
     # Checks for database connection error message
     class DatabaseConnectionIssuePlugin < Base
-      def call(domain_name)
-        response = fetch('http://' + domain_name + '/')
+      def call(opts)
+        response = fetch(opts[:host])
 
         check_for_database_connection_error(response)
 
