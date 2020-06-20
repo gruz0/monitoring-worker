@@ -17,6 +17,7 @@ def log(message = '')
   puts message
 end
 
+domain            = Settings.domain
 requested_plugins = Settings.plugins
 loader            = Plugins::Loader.new
 message_formatter = MessageFormatter.new
@@ -28,25 +29,23 @@ loader.load_plugins!(requested_plugins)
 requested_plugins.each do |namespace, plugins|
   issues[namespace] = {}
 
-  plugins.each do |plugin_name, domains|
+  plugins.each do |plugin_name|
     issues[namespace][plugin_name] = []
 
     plugin = loader.get(namespace, plugin_name)
 
-    domains.each do |domain|
-      result = plugin.call(domain)
+    result = plugin.call(domain)
 
-      message = message_formatter.call(plugin: plugin, domain_name: domain, result: result)
+    message = message_formatter.call(plugin: plugin, domain_name: domain, result: result)
 
-      log message
+    log message
 
-      issues[namespace][plugin_name] << { domain => result.description } if result.failure?
-    end
+    issues[namespace][plugin_name] << { domain => result.description } if result.failure?
   end
 end
 
 issues.reject! do |_, r|
-  m = r.reject do |_, d|
+  m = r.reject! do |_, d|
     d.size.zero?
   end
 
