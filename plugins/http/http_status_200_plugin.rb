@@ -4,8 +4,8 @@ module Plugins
   module Http
     # Checks for HTTP Status 200
     class HttpStatus200Plugin < Base
-      def call(domain_name)
-        check_for_http_200_following_redirects('http://' + domain_name)
+      def call(opts)
+        check_for_http_200_following_redirects(opts[:host])
 
         success
       rescue PluginError => e

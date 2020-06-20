@@ -26,6 +26,15 @@ issues = {}
 
 loader.load_plugins!(requested_plugins)
 
+domain = loader.get(:generic, :domain_detector).call(domain)
+scheme = loader.get(:generic, :scheme_detector).call(domain)
+
+opts = {
+  scheme: scheme,
+  domain: domain,
+  host: "#{scheme}://#{domain}"
+}
+
 requested_plugins.each do |namespace, plugins|
   issues[namespace] = {}
 
@@ -34,7 +43,7 @@ requested_plugins.each do |namespace, plugins|
 
     plugin = loader.get(namespace, plugin_name)
 
-    result = plugin.call(domain)
+    result = plugin.call(opts)
 
     message = message_formatter.call(plugin: plugin, domain_name: domain, result: result)
 
@@ -44,19 +53,23 @@ requested_plugins.each do |namespace, plugins|
   end
 end
 
-issues.reject! do |_, r|
-  m = r.reject! do |_, d|
-    d.size.zero?
-  end
+i = {}
 
-  m.size.zero?
+issues.each do |namespace, plugins|
+  plugins = plugins.delete_if { |_, v| v.size.zero? }
+
+  next if plugins.empty?
+
+  i[namespace] = plugins
 end
 
-if issues.empty?
+if i.empty?
   log 'No issues found'
-else
-  log 'Detected issues:'
-  log JSON.pretty_generate(issues)
 
-  abort
+  exit
 end
+
+log 'Detected issues:'
+log JSON.pretty_generate(i)
+
+abort

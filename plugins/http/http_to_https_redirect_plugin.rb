@@ -4,11 +4,11 @@ module Plugins
   module Http
     # Checks for redirect from HTTP to HTTPS
     class HttpToHttpsRedirectPlugin < Base
-      def call(domain_name)
-        response = request_head('http://' + domain_name, '/')
+      def call(opts)
+        response = request_head('http://' + opts[:domain], '/')
 
         check_for_unexpected_status_code(response, 301)
-        check_for_unexpected_location(response, "https://#{domain_name}/")
+        check_for_unexpected_location(response, "https://#{opts[:domain]}/")
 
         success
       rescue PluginError => e
