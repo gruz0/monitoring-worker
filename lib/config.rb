@@ -6,17 +6,11 @@ class ConfigContract < Dry::Validation::Contract
 
   params do
     optional(:verbose).filled(:bool)
+    required(:domain).filled(:string)
 
     required(:plugins).filled(:hash).schema do
-      optional(:http).filled(:hash).schema do
-        optional(:http_to_https_redirect).array(:str?)
-        optional(:www_to_non_www_redirect).array(:str?)
-        optional(:http_status_200).array(:str?)
-        optional(:non_existent_url_returns_404).array(:str?)
-      end
-      optional(:other).filled(:hash).schema do
-        optional(:database_connection_issue).array(:str?)
-      end
+      optional(:http).array(:str?)
+      optional(:other).array(:str?)
     end
   end
 end
