@@ -2,21 +2,31 @@
 
 # Represents contract
 class ConfigContract < Dry::Validation::Contract
-  config.validate_keys = true
-
   params do
-    optional(:verbose).filled(:bool)
+    optional(:verbose).filled(:integer)
     required(:domain).filled(:string)
 
     required(:plugins).filled(:hash).schema do
-      optional(:http).array(:str?)
-      optional(:other).array(:str?)
+      optional(:http).filled(:hash).schema do
+        optional(:http_to_https_redirect).filled(:integer)
+        optional(:www_to_non_www_redirect).filled(:integer)
+        optional(:http_status_200).filled(:integer)
+        optional(:non_existent_url_returns_404).filled(:integer)
+      end
+      optional(:other).filled(:hash).schema do
+        optional(:database_connection_issue).filled(:integer)
+      end
     end
   end
 end
 
 Config.setup do |config|
   config.fail_on_missing = true
+
+  config.use_env = true
+  config.env_prefix = 'SETTINGS'
+  config.env_separator = '__'
+  config.env_parse_values = true
 
   config.validation_contract = ConfigContract.new
 end

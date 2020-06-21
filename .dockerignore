@@ -1,1 +1,14 @@
-config/settings.yml
+.git
+bin/
+env/
+
+.dockerignore
+.gitignore
+.rubocop.yml
+.ruby-version
+
+Dockerfile
+
+Makefile
+
+TODO
