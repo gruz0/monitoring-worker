@@ -10,14 +10,16 @@ module Plugins
     end
 
     def load_plugins!(requested_plugins)
+      raise PluginError, 'No plugins are selected' if requested_plugins.empty?
+
       requested_plugins.each do |namespace, plugins|
-        plugins.each do |plugin_name, _|
+        plugins.each do |plugin_name|
           get(namespace, plugin_name)
-        rescue Plugins::PluginError => e
-          log e.message
-          exit 1
         end
       end
+    rescue PluginError => e
+      log e.message
+      exit 1
     end
 
     def get(namespace, plugin_name)
@@ -33,7 +35,7 @@ module Plugins
 
       Object.const_get(plugin_class_name).new
     rescue LoadError
-      raise PluginError, "Plugin #{plugin_name} does not exist"
+      raise PluginError, "Plugin #{namespace}.#{plugin_name} does not exist"
     rescue NameError
       raise PluginError, "Class #{plugin_class_name} was not found"
     rescue StandardError => e

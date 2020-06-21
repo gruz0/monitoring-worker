@@ -12,19 +12,33 @@ require_relative 'lib/message_formatter'
 require_relative 'plugins/loader'
 
 def log(message = '')
-  return unless Settings.key?(:verbose) && Settings.verbose
+  return unless Settings.key?(:verbose) && Settings.verbose == 1
 
   puts message
 end
 
+def select_enabled_plugins(selected_plugins)
+  enabled_plugins = {}
+
+  selected_plugins.each do |namespace, plugins|
+    result = plugins.map { |plugin, enabled| plugin if enabled == 1 }.flatten
+
+    next if result.empty?
+
+    enabled_plugins[namespace] = result
+  end
+
+  enabled_plugins
+end
+
 domain            = Settings.domain
-requested_plugins = Settings.plugins
+selected_plugins  = Settings.plugins
 loader            = Plugins::Loader.new
 message_formatter = MessageFormatter.new
 
-issues = {}
+enabled_plugins = select_enabled_plugins(selected_plugins)
 
-loader.load_plugins!(requested_plugins)
+loader.load_plugins!(enabled_plugins)
 
 domain = loader.get(:generic, :domain_detector).call(domain)
 scheme = loader.get(:generic, :scheme_detector).call(domain)
@@ -35,7 +49,9 @@ opts = {
   host: "#{scheme}://#{domain}"
 }
 
-requested_plugins.each do |namespace, plugins|
+issues = {}
+
+enabled_plugins.each do |namespace, plugins|
   issues[namespace] = {}
 
   plugins.each do |plugin_name|
