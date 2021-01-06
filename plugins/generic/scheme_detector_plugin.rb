@@ -5,9 +5,11 @@ module Plugins
     # Returns scheme
     class SchemeDetectorPlugin < Base
       def call(domain)
-        response = fetch('http://' + domain)
+        response = http_client.fetch("http://#{domain}")
 
-        response.uri.scheme
+        success(response.uri.scheme)
+      rescue HttpClient::ClientError => e
+        failure(e.message)
       end
 
       def name

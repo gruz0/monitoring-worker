@@ -5,13 +5,13 @@ module Plugins
     # Checks for redirect from www to non-www
     class WwwToNonWwwRedirectPlugin < Base
       def call(opts)
-        response = request_head(opts[:scheme] + '://www.' + opts[:domain], '/')
+        response = http_client.head("#{opts[:scheme]}://www.#{opts[:domain]}", '/')
 
         check_for_unexpected_status_code(response, 301)
-        check_for_unexpected_location(response, opts[:host] + '/')
+        check_for_unexpected_location(response, "#{opts[:host]}/")
 
         success
-      rescue PluginError => e
+      rescue PluginError, HttpClient::ClientError => e
         failure(e.message)
       end
 

@@ -1,14 +1,13 @@
 # frozen_string_literal: true
 
-# Represents Response as object
+# Represents plugin's result as object
 class Result
-  attr_reader :success, :description
+  attr_reader :success, :plugin_name, :value
 
-  def initialize(success:, description: nil)
+  def initialize(success:, plugin_name:, value: nil)
     @success = success
-    @description = description
-
-    raise ArgumentError, 'Description must be set for failured result' unless valid?
+    @plugin_name = plugin_name
+    @value = value
   end
 
   def success?
@@ -17,15 +16,5 @@ class Result
 
   def failure?
     !success?
-  end
-
-  protected
-
-  def valid?
-    success? || (failure? && !description_empty?)
-  end
-
-  def description_empty?
-    description.to_s.strip.size.zero?
   end
 end
