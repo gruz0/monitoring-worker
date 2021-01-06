@@ -10,8 +10,8 @@ class ConfigContract < Dry::Validation::Contract
       optional(:http).filled(:hash).schema do
         optional(:http_to_https_redirect).filled(:integer)
         optional(:www_to_non_www_redirect).filled(:integer)
-        optional(:http_status_200).filled(:integer)
-        optional(:non_existent_url_returns_404).filled(:integer)
+        optional(:http_status200).filled(:integer)
+        optional(:non_existent_url_returns404).filled(:integer)
       end
       optional(:other).filled(:hash).schema do
         optional(:database_connection_issue).filled(:integer)

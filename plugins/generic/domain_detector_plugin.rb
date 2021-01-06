@@ -5,7 +5,9 @@ module Plugins
     # Returns domain without www
     class DomainDetectorPlugin < Base
       def call(url)
-        host_without_www(url)
+        success(host_without_www(url))
+      rescue StandardError => e
+        failure(e.message)
       end
 
       def name
@@ -18,7 +20,7 @@ module Plugins
         uri = URI.parse(url)
         uri = URI.parse("http://#{url}") if uri.scheme.nil?
         host = uri.host.downcase
-        host.start_with?('www.') ? host[4..-1] : host
+        host.start_with?('www.') ? host[4..] : host
       end
     end
   end

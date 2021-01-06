@@ -8,7 +8,7 @@ module Plugins
         check_for_http_200_following_redirects(opts[:host])
 
         success
-      rescue PluginError => e
+      rescue PluginError, HttpClient::ClientError => e
         failure(e.message)
       end
 
@@ -19,7 +19,7 @@ module Plugins
       protected
 
       def check_for_http_200_following_redirects(url)
-        response = fetch(url)
+        response = http_client.fetch(url)
 
         raise PluginError, "Expected 200 HTTP Status, got: #{response.code}" if response.code != '200'
       end

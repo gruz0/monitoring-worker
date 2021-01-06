@@ -5,12 +5,12 @@ module Plugins
     # Checks for database connection error message
     class DatabaseConnectionIssuePlugin < Base
       def call(opts)
-        response = fetch(opts[:host])
+        response = http_client.fetch(opts[:host])
 
         check_for_database_connection_error(response)
 
         success
-      rescue PluginError => e
+      rescue PluginError, HttpClient::ClientError => e
         failure(e.message)
       end
 

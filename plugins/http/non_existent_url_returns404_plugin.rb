@@ -5,12 +5,12 @@ module Plugins
     # Checks for HTTP Status 404 for non-existent URL
     class NonExistentUrlReturns404Plugin < Base
       def call(opts)
-        response = request_head(opts[:host], '/' + generate_random)
+        response = http_client.head(opts[:host], "/#{generate_random}")
 
         check_for_unexpected_status_code(response, 404)
 
         success
-      rescue PluginError => e
+      rescue PluginError, HttpClient::ClientError => e
         failure(e.message)
       end
 

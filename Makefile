@@ -7,7 +7,7 @@ help:
 	@echo '  make install_linters'
 
 run: build
-	./bin/run.sh
+	./bin/run.sh $(DOMAIN)
 
 build:
 	docker build -t monitoring-worker -f Dockerfile .
