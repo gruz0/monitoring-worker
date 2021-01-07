@@ -10,7 +10,6 @@ end
 gem 'config'
 
 group :development, :test do
-  gem 'bundle-audit', require: false
   gem 'rubocop', require: false
   gem 'rubocop-performance', require: false
   gem 'rubocop-rspec', require: false
