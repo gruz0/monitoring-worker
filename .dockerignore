@@ -1,14 +1,13 @@
-.git
-bin/
-env/
-
 .dockerignore
+.git
+.github
 .gitignore
 .rubocop.yml
 .ruby-version
 
+bin/
+env/
+
 Dockerfile
-
 Makefile
-
 TODO
