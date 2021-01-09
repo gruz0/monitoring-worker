@@ -6,10 +6,12 @@ module Plugins
   module Content
     # Checks for page contains string
     class ContainsStringPlugin < Base
-      # rubocop:disable Metrics/AbcSize
+      # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
       def call(opts)
-        url = opts.dig(:meta, :url)
-        value = opts.dig(:meta, :value)
+        host     = opts[:host]
+        resource = opts.dig(:meta, :resource)
+        url      = "#{host}/#{resource}"
+        value    = opts.dig(:meta, :value)
 
         response = http_client.get(url)
 
@@ -23,7 +25,7 @@ module Plugins
       rescue HTTPClient::ClientError => e
         failure(format_error_message(prepare(url, value), e.message))
       end
-      # rubocop:enable Metrics/AbcSize
+      # rubocop:enable Metrics/AbcSize, Metrics/MethodLength
 
       def name
         'Contains String'
