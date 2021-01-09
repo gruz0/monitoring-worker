@@ -33,6 +33,11 @@ module Contracts
           optional(:non_existent_url_returns404).filled(:hash).schema do
             required(:enable).filled(:integer)
           end
+          optional(:valid_http_status_code).filled(:hash).schema do
+            required(:enable).filled(:integer)
+            required(:resource).filled(:string)
+            required(:value).filled(:integer)
+          end
         end
         optional(:other).filled(:hash).schema do
           optional(:database_connection_issue).filled(:hash).schema do
