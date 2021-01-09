@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'plugins/base'
+
 module Plugins
   module Generic
     # Returns scheme

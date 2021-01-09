@@ -1,3 +1,3 @@
 #!/bin/sh
 
-ruby ./boot.rb
+bundle exec ruby ./boot.rb

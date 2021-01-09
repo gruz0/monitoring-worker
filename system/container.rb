@@ -3,9 +3,11 @@
 require 'dry/system/container'
 
 class Application < Dry::System::Container
-  load_paths!('lib')
+  use :monitoring
 
   configure do |config|
-    config.auto_register = %w[lib]
+    config.auto_register = 'lib'
   end
+
+  load_paths!('lib', 'system')
 end

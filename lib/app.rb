@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'import'
-
 class App
   include Import[:logger, :config]
 

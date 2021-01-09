@@ -8,7 +8,9 @@ git_source(:github) do |repo_name|
 end
 
 gem 'config'
+gem 'dry-events'
 gem 'dry-monads'
+gem 'dry-monitor'
 gem 'dry-system'
 
 group :development, :test do
