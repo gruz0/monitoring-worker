@@ -7,7 +7,7 @@ module Plugins
 
   # Base class
   class Base
-    include Import['http_client']
+    include Import[:logger, :http_client]
     include Dry::Monads[:result]
 
     def call(_)
