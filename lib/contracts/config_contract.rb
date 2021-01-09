@@ -11,12 +11,12 @@ module Contracts
         optional(:content).filled(:hash).schema do
           optional(:contains_string).filled(:hash).schema do
             required(:enable).filled(:integer)
-            required(:url).filled(:string)
+            required(:resource).filled(:string)
             required(:value).filled(:string)
           end
           optional(:does_not_contain_string).filled(:hash).schema do
             required(:enable).filled(:integer)
-            required(:url).filled(:string)
+            required(:resource).filled(:string)
             required(:value).filled(:string)
           end
         end
