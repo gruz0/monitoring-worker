@@ -5,13 +5,15 @@ module Plugins
     # Returns domain without www
     class DomainDetectorPlugin < Base
       def call(url)
+        raise ArgumentError, 'URL must not be empty' if url.empty?
+
         success(host_without_www(url))
       rescue StandardError => e
         failure(e.message)
       end
 
       def name
-        'Domain without www'
+        'Domain Detector'
       end
 
       private

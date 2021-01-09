@@ -1,32 +1,39 @@
 # frozen_string_literal: true
 
-class HttpClient
+require 'net/http'
+
+class HTTPClient
+  include Import[:logger]
+
   class ClientError < StandardError; end
 
   OPEN_TIMEOUT = 5
   READ_TIMEOUT = 10
   SSL_TIMEOUT = 5
 
-  def head(domain_name, resource)
-    uri = URI.parse(domain_name)
+  def head(domain, resource)
+    raise ArgumentError, 'Domain must not be empty' if domain.empty?
+
+    uri = URI.parse(domain)
 
     start(uri).head(resource)
-  rescue Net::OpenTimeout
-    raise ClientError, 'Open timeout'
-  rescue Timeout::Error
-    raise ClientError, 'Timeout reading from server'
+  rescue StandardError => e
+    logger.warn "HTTPClient#head StandardError: #{e.message}"
+
+    raise ClientError, e.message
   end
 
-  def fetch(url, limit = 10)
+  def get(url, limit = 10)
+    raise ArgumentError, 'URL must not be empty' if url.empty?
     raise ClientError, 'Too many HTTP redirects' if limit.zero?
 
     uri = URI.parse(url)
 
     get_response(uri, limit)
-  rescue Net::OpenTimeout
-    raise ClientError, 'Open timeout'
-  rescue Timeout::Error
-    raise ClientError, 'Timeout reading from server'
+  rescue StandardError => e
+    logger.warn "HTTPClient#get StandardError: #{e.message}"
+
+    raise ClientError, e.message
   end
 
   private
@@ -38,23 +45,37 @@ class HttpClient
     when Net::HTTPSuccess
       response
     when Net::HTTPRedirection
-      fetch(response['location'], limit - 1)
+      get(response['location'], limit - 1)
     else
       response.value
     end
   end
 
+  # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
   def start(uri)
     Net::HTTP.start(uri.host, uri.port, options(uri))
-  rescue Net::OpenTimeout
-    raise ClientError, 'Open timeout'
-  rescue Timeout::Error
-    raise ClientError, 'Timeout connecting to server'
-  rescue SocketError
-    raise ClientError, 'Unknown server'
-  rescue StandardError => e
-    raise ClientError, "Unhandled exception: #{e.message}"
+  rescue SocketError => e
+    logger.warn "HTTPClient#start SocketError: #{e.message}"
+
+    raise ClientError, 'Socket Error: Domain does not resolve'
+  rescue OpenSSL::SSL::SSLError => e
+    logger.warn "HTTPClient#start SSLError: #{e.message}"
+
+    raise ClientError, 'SSL Error: Invalid certificate'
+  rescue Net::OpenTimeout => e
+    logger.warn "HTTPClient#start Net::OpenTimeout: #{e.message}"
+
+    raise ClientError, 'Network Error: Open timeout'
+  rescue Timeout::Error => e
+    logger.warn "HTTPClient#start Timeout::Error: #{e.message}"
+
+    raise ClientError, 'Timeout Error: Reading from server'
+  rescue Net::HTTPServerException => e
+    logger.warn "HTTPClient#start Net::HTTPServerException: #{e.message}"
+
+    raise ClientError, 'Server Error: 404 Not Found'
   end
+  # rubocop:enable Metrics/AbcSize, Metrics/MethodLength
 
   def options(uri)
     {

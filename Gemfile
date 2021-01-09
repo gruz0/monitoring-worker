@@ -8,6 +8,8 @@ git_source(:github) do |repo_name|
 end
 
 gem 'config'
+gem 'dry-monads'
+gem 'dry-system'
 
 group :development, :test do
   gem 'rubocop', require: false
