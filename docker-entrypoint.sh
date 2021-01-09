@@ -1,3 +1,3 @@
 #!/bin/sh
 
-ruby ./main.rb
+ruby ./boot.rb
