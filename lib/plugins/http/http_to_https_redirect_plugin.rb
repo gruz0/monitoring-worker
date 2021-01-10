@@ -16,12 +16,20 @@ module Plugins
         check_for_unexpected_location(url, response, "https://#{domain}/")
 
         success
-      rescue PluginError, HTTPClient::ClientError => e
+      rescue PluginError => e
         failure(e.message)
+      rescue HTTPClient::ClientError => e
+        failure(format_error_message(prepare(url), e.message))
       end
 
       def name
         'Redirect from HTTP to HTTPS'
+      end
+
+      private
+
+      def prepare(host)
+        "host [#{host}] has valid redirect from HTTP to HTTPS"
       end
     end
   end

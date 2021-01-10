@@ -15,12 +15,20 @@ module Plugins
         check_for_unexpected_location(url, response, "#{opts[:host]}/")
 
         success
-      rescue PluginError, HTTPClient::ClientError => e
+      rescue PluginError => e
         failure(e.message)
+      rescue HTTPClient::ClientError => e
+        failure(format_error_message(prepare(url), e.message))
       end
 
       def name
         'Redirect from www to non-www'
+      end
+
+      private
+
+      def prepare(url)
+        "URL [#{url}] has valid redirect from www to non-www"
       end
     end
   end
