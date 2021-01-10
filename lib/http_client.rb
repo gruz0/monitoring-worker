@@ -11,8 +11,13 @@ class HTTPClient
   READ_TIMEOUT = 10
   SSL_TIMEOUT = 5
 
+  # rubocop:disable Metrics/AbcSize
   def head(domain, resource)
-    raise ArgumentError, 'Domain must not be empty' if domain.empty?
+    raise ArgumentError, 'Domain must not be empty' if domain.to_s.strip.empty?
+    raise ArgumentError, 'Resource must not be empty' if resource.to_s.strip.empty?
+
+    domain   = domain.to_s.strip
+    resource = resource.to_s.strip
 
     uri = URI.parse(domain)
 
@@ -22,10 +27,13 @@ class HTTPClient
 
     raise ClientError, e.message
   end
+  # rubocop:enable Metrics/AbcSize
 
   def get(url, limit = 10)
-    raise ArgumentError, 'URL must not be empty' if url.empty?
+    raise ArgumentError, 'URL must not be empty' if url.to_s.strip.empty?
     raise ClientError, 'Too many HTTP redirects' if limit.zero?
+
+    url = url.to_s.strip
 
     uri = URI.parse(url)
 

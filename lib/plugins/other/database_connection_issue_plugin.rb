@@ -7,13 +7,19 @@ module Plugins
     # Checks for database connection error message
     class DatabaseConnectionIssuePlugin < Base
       def call(opts)
-        response = http_client.get(opts[:host])
+        host = opts[:host]
 
-        check_for_database_connection_error(response)
+        response = http_client.get(host)
+
+        if response.body.downcase.include?('access denied for user')
+          raise PluginError, format_error_message(prepare(host), true)
+        end
 
         success
-      rescue PluginError, HTTPClient::ClientError => e
+      rescue PluginError => e
         failure(e.message)
+      rescue HTTPClient::ClientError => e
+        failure(format_error_message(prepare(host), e.message))
       end
 
       def name
@@ -22,10 +28,8 @@ module Plugins
 
       private
 
-      def check_for_database_connection_error(response)
-        return unless response.body.downcase.include?('access denied for user')
-
-        raise PluginError, 'Database connection issue found'
+      def prepare(url)
+        "URL [#{url}] does not have database connection issue"
       end
     end
   end

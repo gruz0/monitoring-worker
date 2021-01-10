@@ -7,19 +7,25 @@ module Plugins
     # Returns scheme
     class SchemeDetectorPlugin < Base
       def call(domain)
-        raise ArgumentError, 'Domain must not be empty' if domain.to_s.strip.empty?
+        domain = domain.to_s.strip
 
         response = http_client.get("http://#{domain}")
 
         success(response.uri.scheme)
       rescue HTTPClient::ClientError => e
-        failure(e.message)
+        failure(format_error_message(prepare(domain), e.message))
       rescue StandardError => e
         failure(e.message)
       end
 
       def name
         'Scheme Detector'
+      end
+
+      private
+
+      def prepare(domain)
+        "domain [#{domain}] has valid scheme"
       end
     end
   end

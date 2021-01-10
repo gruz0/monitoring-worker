@@ -8,15 +8,18 @@ module Plugins
     class NonExistentUrlReturns404Plugin < Base
       def call(opts)
         random = generate_random
-        url    = "#{opts[:host]}/#{random}"
+        host   = opts[:host]
+        url    = "#{host}/#{random}"
 
-        response = http_client.head(opts[:host], "/#{random}")
+        response = http_client.head(host, "/#{random}")
 
         check_for_unexpected_status_code(url, response, 404)
 
         success
-      rescue PluginError, HTTPClient::ClientError => e
+      rescue PluginError => e
         failure(e.message)
+      rescue HTTPClient::ClientError => e
+        failure(format_error_message(prepare(url), e.message))
       end
 
       def name
@@ -27,6 +30,12 @@ module Plugins
 
       def generate_random
         rand(36**36).to_s(36)
+      end
+
+      private
+
+      def prepare(url)
+        "URL [#{url}] returns [404] HTTP Status Code"
       end
     end
   end

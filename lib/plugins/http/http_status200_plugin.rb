@@ -7,23 +7,27 @@ module Plugins
     # Checks for HTTP Status 200
     class HTTPStatus200Plugin < Base
       def call(opts)
-        check_for_http_200_following_redirects(opts[:host])
+        host = opts[:host]
+
+        response = http_client.get(host)
+
+        raise PluginError, format_error_message(prepare(host), response.code) if response.code != '200'
 
         success
-      rescue PluginError, HTTPClient::ClientError => e
+      rescue PluginError => e
         failure(e.message)
+      rescue HTTPClient::ClientError => e
+        failure(format_error_message(prepare(host), e.message))
       end
 
       def name
         'HTTP Status 200'
       end
 
-      protected
+      private
 
-      def check_for_http_200_following_redirects(url)
-        response = http_client.get(url)
-
-        raise PluginError, "Expected 200 HTTP Status, got: #{response.code}" if response.code != '200'
+      def prepare(url)
+        "URL [#{url}] has [200] HTTP Status Code"
       end
     end
   end

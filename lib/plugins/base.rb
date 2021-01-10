@@ -33,7 +33,7 @@ module Plugins
 
       return if code == expected
 
-      raise PluginError, format_error_message("URL [#{url}] returns #{expected} HTTP Status Code", code)
+      raise PluginError, format_error_message("URL [#{url}] returns [#{expected}] HTTP Status Code", code)
     end
 
     def check_for_unexpected_location(url, response, expected)
@@ -62,6 +62,10 @@ module Plugins
         plugin_name: name,
         value: value
       }
+    end
+
+    def prepare(*args)
+      raise NotImplementedError
     end
   end
 end
