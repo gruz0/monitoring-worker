@@ -1,4 +1,6 @@
 !/env/example.env
 env/*.env
 
+spec/examples.txt
+
 TODO

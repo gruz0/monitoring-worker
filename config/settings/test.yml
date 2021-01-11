@@ -1,0 +1,27 @@
+verbose: 1
+
+domain: example.com
+
+plugins:
+  http:
+    www_to_non_www_redirect:
+      enable: 1
+    http_to_https_redirect:
+      enable: 1
+    http_status200:
+      enable: 1
+    non_existent_url_returns404:
+      enable: 1
+    valid_http_status_code:
+      enable: 1
+      resource: /resource
+      value: 301
+  content:
+    contains_string:
+      enable: 1
+      resource: /resource
+      value: expected
+    does_not_contain_string:
+      enable: 1
+      resource: /resource
+      value: not-expected

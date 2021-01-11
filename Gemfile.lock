@@ -7,6 +7,7 @@ GEM
       deep_merge (~> 1.2, >= 1.2.1)
       dry-validation (~> 1.0, >= 1.0.0)
     deep_merge (1.2.1)
+    diff-lcs (1.4.4)
     dry-auto_inject (0.7.0)
       dry-container (>= 0.3.4)
     dry-configurable (0.11.5)
@@ -81,6 +82,19 @@ GEM
     rainbow (3.0.0)
     regexp_parser (2.0.3)
     rexml (3.2.4)
+    rspec (3.10.0)
+      rspec-core (~> 3.10.0)
+      rspec-expectations (~> 3.10.0)
+      rspec-mocks (~> 3.10.0)
+    rspec-core (3.10.1)
+      rspec-support (~> 3.10.0)
+    rspec-expectations (3.10.1)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (~> 3.10.0)
+    rspec-mocks (3.10.1)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (~> 3.10.0)
+    rspec-support (3.10.1)
     rubocop (1.7.0)
       parallel (~> 1.10)
       parser (>= 2.7.1.5)
@@ -110,6 +124,7 @@ DEPENDENCIES
   dry-monads
   dry-monitor
   dry-system
+  rspec
   rubocop
   rubocop-performance
   rubocop-rspec
