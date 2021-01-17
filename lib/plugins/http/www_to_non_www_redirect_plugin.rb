@@ -8,15 +8,15 @@ module Plugins
     class WwwToNonWwwRedirectPlugin < Base
       include Dry::Monads::Do.for(:call)
 
-      def call(opts)
-        values   = yield validate_opts(opts)
-        values   = yield build_values(values)
+      def call(input)
+        opts     = yield validate_opts(input)
+        values   = yield build_values(opts)
         response = yield request_head(values[:url], '/')
 
-        yield check_for_unexpected_status_code(values[:url], response[:code], 301)
-        yield check_for_unexpected_location(values[:url], response[:location], "#{values[:host]}/")
+        yield check_for_unexpected_status_code(response, values, 301)
+        yield check_for_unexpected_location(response, values, "#{opts[:host]}/")
 
-        Success(yield build_presentation(success: true))
+        success
       end
 
       def name
@@ -26,10 +26,7 @@ module Plugins
       protected
 
       def build_values(values)
-        Success(
-          host: values[:host],
-          url: "#{values[:scheme]}://www.#{values[:domain]}"
-        )
+        Success(url: "#{values[:scheme]}://www.#{values[:domain]}/")
       end
     end
   end

@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 RSpec.describe Plugins::Generic::SchemeDetectorPlugin do
-  subject(:execution) { described_class.new.call(url) }
+  subject(:execution) { described_class.new.call(input) }
 
-  let(:url) {}
+  let(:input) { {} }
 
   shared_examples 'SchemeDetectorPlugin Success' do |scheme|
     let(:attrs) do
@@ -19,29 +19,41 @@ RSpec.describe Plugins::Generic::SchemeDetectorPlugin do
     end
   end
 
-  context 'when url is nil' do
-    let(:url) {}
+  context 'when domain is missing' do
+    before { input.delete(:domain) }
 
-    it { is_expected.to eq(Failure('URL must be a string')) }
+    include_examples 'Plugin Failure', { domain: ['domain is missing'] }
   end
 
-  context 'when url is empty' do
-    let(:url) { ' ' }
+  context 'when domain is nil' do
+    before { input[:domain] = nil }
 
-    it { is_expected.to eq(Failure('URL must not be empty')) }
+    include_examples 'Plugin Failure', { domain: ['domain must be filled'] }
   end
 
-  context 'when url could not be parsed' do
-    let(:url) { '"' }
+  context 'when domain is not a string' do
+    before { input[:domain] = false }
 
-    it { is_expected.to eq(Failure('Invalid URL')) }
+    include_examples 'Plugin Failure', { domain: ['domain must be a string'] }
+  end
+
+  context 'when domain is empty' do
+    before { input[:domain] = ' ' }
+
+    include_examples 'Plugin Failure', { domain: ['domain must be filled'] }
+  end
+
+  context 'when domain could not be parsed' do
+    before { input[:domain] = '"' }
+
+    include_examples 'Plugin Failure', { domain: ['domain is not valid'] }
   end
 
   context 'without scheme and resource' do
-    let(:url) { 'domain.tld' }
-
     before do
-      stub_request(:head, "http://#{url}/")
+      input[:domain] = 'domain.tld'
+
+      stub_request(:head, 'http://domain.tld/')
         .to_return(status: 200)
     end
 
@@ -49,10 +61,10 @@ RSpec.describe Plugins::Generic::SchemeDetectorPlugin do
   end
 
   context 'without scheme' do
-    let(:url) { 'domain.tld/123' }
-
     before do
-      stub_request(:head, "http://#{url}")
+      input[:domain] = 'domain.tld/123'
+
+      stub_request(:head, 'http://domain.tld/123')
         .to_return(status: 200)
     end
 
@@ -60,10 +72,10 @@ RSpec.describe Plugins::Generic::SchemeDetectorPlugin do
   end
 
   context 'without resource' do
-    let(:url) { 'http://domain.tld' }
-
     before do
-      stub_request(:head, url)
+      input[:domain] = 'http://domain.tld'
+
+      stub_request(:head, 'http://domain.tld')
         .to_return(status: 200)
     end
 
@@ -71,58 +83,54 @@ RSpec.describe Plugins::Generic::SchemeDetectorPlugin do
   end
 
   context 'with redirect' do
-    let(:url) { 'domain.tld' }
-
     before do
-      stub_request(:head, url)
-        .to_return(status: 301, headers: { 'Location': "https://#{url}" })
+      input[:domain] = 'domain.tld'
 
-      stub_request(:head, "https://#{url}")
-        .to_return(status: 200)
+      stub_request(:head, /domain.tld/)
+        .to_return(
+          { status: 301, headers: { 'Location': 'https://domain.tld' } },
+          { status: 200 }
+        )
     end
 
     include_examples 'SchemeDetectorPlugin Success', 'https'
   end
 
   context 'with multiple 301 redirects' do
-    let(:url) { 'domain.tld' }
-
     before do
-      stub_request(:head, "http://#{url}")
-        .to_return(status: 301, headers: { 'Location': "https://#{url}" })
+      input[:domain] = 'domain.tld'
 
-      stub_request(:head, "https://#{url}")
-        .to_return(status: 301, headers: { 'Location': "https://www.#{url}" })
-
-      stub_request(:head, "https://www.#{url}")
-        .to_return(status: 301, headers: { 'Location': "https://www1.#{url}" })
-
-      stub_request(:head, "https://www1.#{url}")
-        .to_return(status: 200)
+      stub_request(:head, /domain.tld/)
+        .to_return(
+          { status: 301, headers: { 'Location': 'https://domain.tld' } },
+          { status: 301, headers: { 'Location': 'https://www.domain.tld' } },
+          { status: 301, headers: { 'Location': 'https://www1.domain.tld' } },
+          { status: 200 }
+        )
     end
 
     include_examples 'SchemeDetectorPlugin Success', 'https'
   end
 
   context 'with multiple different redirects' do
-    let(:url) { 'domain.tld' }
-
     before do
-      stub_request(:head, "http://#{url}")
-        .to_return(status: 301, headers: { 'Location': "https://#{url}" })
+      input[:domain] = 'domain.tld'
 
-      stub_request(:head, "https://#{url}")
-        .to_return(status: 302, headers: { 'Location': "https://#{url}/auth/sign_in" })
-
-      stub_request(:head, "https://#{url}/auth/sign_in")
-        .to_return(status: 200)
+      stub_request(:head, /domain.tld/)
+        .to_return(
+          { status: 301, headers: { 'Location': 'https://domain.tld' } },
+          { status: 302, headers: { 'Location': 'https://domain.tld/auth/sign_in' } },
+          { status: 200 }
+        )
     end
 
     include_examples 'SchemeDetectorPlugin Success', 'https'
   end
 
   context 'when HTTPClient raises exceptions' do
-    let(:url) { 'domain.tld' }
+    before do
+      input[:domain] = 'domain.tld'
+    end
 
     include_examples 'HTTPClient Exceptions', :head, 'domain.tld'
   end

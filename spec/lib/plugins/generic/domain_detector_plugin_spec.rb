@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 RSpec.describe Plugins::Generic::DomainDetectorPlugin do
-  subject(:execution) { described_class.new.call(domain) }
+  subject(:execution) { described_class.new.call(input) }
 
-  let(:domain) { 'http://domain.tld/123' }
+  let(:input) { {} }
 
   shared_examples 'DomainDetectorPlugin Success' do |domain_name|
     let(:attrs) do
@@ -19,34 +19,50 @@ RSpec.describe Plugins::Generic::DomainDetectorPlugin do
     end
   end
 
-  include_examples 'DomainDetectorPlugin Success', 'domain.tld'
+  context 'when domain is missing' do
+    before { input.delete(:domain) }
+
+    include_examples 'Plugin Failure', { domain: ['domain is missing'] }
+  end
 
   context 'when domain is nil' do
-    let(:domain) {}
+    before { input[:domain] = nil }
 
-    it { is_expected.to eq(Failure('Domain must be a string')) }
+    include_examples 'Plugin Failure', { domain: ['domain must be filled'] }
+  end
+
+  context 'when domain is not a string' do
+    before { input[:domain] = false }
+
+    include_examples 'Plugin Failure', { domain: ['domain must be a string'] }
   end
 
   context 'when domain is empty' do
-    let(:domain) { ' ' }
+    before { input[:domain] = ' ' }
 
-    it { is_expected.to eq(Failure('Domain must not be empty')) }
+    include_examples 'Plugin Failure', { domain: ['domain must be filled'] }
   end
 
   context 'when domain could not be parsed' do
-    let(:domain) { '"' }
+    before { input[:domain] = '"' }
 
-    it { is_expected.to eq(Failure('Invalid domain name')) }
+    include_examples 'Plugin Failure', { domain: ['domain is not valid'] }
   end
 
   context 'when domain without scheme' do
-    let(:domain) { 'domain.tld/123' }
+    before { input[:domain] = 'domain.tld/123' }
+
+    include_examples 'DomainDetectorPlugin Success', 'domain.tld'
+  end
+
+  context 'when domain has scheme and resource' do
+    before { input[:domain] = 'http://domain.tld/123' }
 
     include_examples 'DomainDetectorPlugin Success', 'domain.tld'
   end
 
   context 'when domain has www subdomain' do
-    let(:domain) { 'http://www.domain.tld/123' }
+    before { input[:domain] = 'http://www.domain.tld/123' }
 
     include_examples 'DomainDetectorPlugin Success', 'domain.tld'
   end

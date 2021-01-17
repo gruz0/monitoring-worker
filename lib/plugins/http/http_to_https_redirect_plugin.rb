@@ -8,15 +8,15 @@ module Plugins
     class HTTPToHttpsRedirectPlugin < Base
       include Dry::Monads::Do.for(:call)
 
-      def call(opts)
-        values   = yield validate_opts(opts)
-        values   = yield build_values(values)
+      def call(input)
+        opts     = yield validate_opts(input)
+        values   = yield build_values(opts)
         response = yield request_head(values[:url], '/')
 
-        yield check_for_unexpected_status_code(values[:url], response[:code], 301)
-        yield check_for_unexpected_location(values[:url], response[:location], "https://#{values[:domain]}/")
+        yield check_for_unexpected_status_code(response, values, 301)
+        yield check_for_unexpected_location(response, values, "https://#{values[:domain]}/")
 
-        Success(yield build_presentation(success: true))
+        success
       end
 
       def name
@@ -25,10 +25,10 @@ module Plugins
 
       protected
 
-      def build_values(values)
+      def build_values(opts)
         Success(
-          domain: values[:domain],
-          url: "http://#{values[:domain]}"
+          domain: opts[:domain],
+          url: "http://#{opts[:domain]}/"
         )
       end
     end

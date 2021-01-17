@@ -10,9 +10,14 @@ class HTTPClient
     SSL_TIMEOUT = 5
 
     include Import[:logger]
+    include Import['utils.contract_validator']
     include Dry::Monads[:result]
 
     private
+
+    def validate_contract(contract, input)
+      contract_validator.call(contract, input)
+    end
 
     def start(uri, &block)
       Net::HTTP.start(uri.host, uri.port, options(uri), &block)

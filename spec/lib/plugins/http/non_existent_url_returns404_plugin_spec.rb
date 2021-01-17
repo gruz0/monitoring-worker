@@ -6,20 +6,30 @@ RSpec.describe Plugins::HTTP::NonExistentUrlReturns404Plugin do
   include_context 'set plugin opts'
   include_context 'set plugin name', 'HTTP Status 404 for non-existent URL'
 
-  include_examples 'validate plugin opts'
+  describe 'validate opts' do
+    include_examples 'validate plugin opts'
+  end
 
   context 'when HTTPClient raises exceptions' do
-    let(:domain) { 'domain.tld' }
-
     include_examples 'HTTPClient Exceptions', :head, 'domain.tld'
   end
 
-  include_examples 'Plugin success' do
-    let(:domain) { 'domain.tld' }
+  context 'when HTTP Status is not expected' do
+    include_examples 'Plugin Failure with Matched Message',
+                     'Expected URL \\[http://domain\.tld\/(.+)\\] returns \\[404\\] HTTP Status Code, got 200' do
+      before do
+        stub_request(:head, /#{domain}/)
+          .to_return(status: 200)
+      end
+    end
+  end
 
-    before do
-      stub_request(:head, /#{domain}/)
-        .to_return(status: 404)
+  context 'when HTTP Status is equal to expected' do
+    include_examples 'Plugin success' do
+      before do
+        stub_request(:head, /#{domain}/)
+          .to_return(status: 404)
+      end
     end
   end
 end

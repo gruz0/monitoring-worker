@@ -5,33 +5,35 @@ RSpec.describe HTTPClient::Get do
 
   include_context 'logger'
 
-  let(:url) {}
+  let(:url) { 'domain.tld' }
   let(:limit) { 10 }
 
-  context 'when url is not a valid string' do
-    let(:url) { { url: 'not-a-host' } }
+  describe 'url' do
+    context 'when url is not a valid string' do
+      let(:url) { { url: 'not-a-host' } }
 
-    include_examples 'HTTPClient Failure', 'URL must be a string'
+      include_examples 'HTTPClient Failure', url: ['url must be a string']
+    end
+
+    context 'when url is empty' do
+      let(:url) { ' ' }
+
+      include_examples 'HTTPClient Failure', url: ['url must be filled']
+    end
   end
 
-  context 'when limit is not an integer' do
-    let(:url) { 'domain.tld' }
-    let(:limit) { { limit: 'not-a-resource' } }
+  describe 'limit' do
+    context 'when limit is not an integer' do
+      let(:limit) { { limit: 'not-a-resource' } }
 
-    include_examples 'HTTPClient Failure', 'Limit must be an integer'
-  end
+      include_examples 'HTTPClient Failure', limit: ['limit must be an integer']
+    end
 
-  context 'when url is empty' do
-    let(:url) { ' ' }
+    context 'when too many redirects' do
+      let(:limit) { 0 }
 
-    include_examples 'HTTPClient Failure', 'URL must not be empty'
-  end
-
-  context 'when too many redirects' do
-    let(:url) { 'http://domain.tld' }
-    let(:limit) { 0 }
-
-    include_examples 'HTTPClient Failure', 'Too many HTTP redirects'
+      include_examples 'HTTPClient Failure', limit: ['too many HTTP redirects']
+    end
   end
 
   context 'when HTTPClient raises exceptions' do

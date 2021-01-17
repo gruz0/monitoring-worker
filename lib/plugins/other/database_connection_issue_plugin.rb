@@ -8,13 +8,13 @@ module Plugins
     class DatabaseConnectionIssuePlugin < Base
       include Dry::Monads::Do.for(:call)
 
-      def call(opts)
-        values   = yield validate_opts(opts)
-        response = yield request_get(values[:host])
+      def call(input)
+        opts     = yield validate_opts(input)
+        response = yield request_get(opts[:host])
 
-        yield contains_string?(response[:body], 'access denied for user')
+        yield contains_string?(response, 'access denied for user')
 
-        Success(yield build_presentation(success: true))
+        success
       end
 
       def name
@@ -23,8 +23,8 @@ module Plugins
 
       protected
 
-      def contains_string?(body, expected)
-        content = body.downcase.force_encoding('UTF-8')
+      def contains_string?(response, expected)
+        content = response[:body].downcase.force_encoding('UTF-8')
 
         return Success() unless content.include?(expected)
 

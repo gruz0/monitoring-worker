@@ -8,15 +8,21 @@ module Plugins
     class SchemeDetectorPlugin < Base
       include Dry::Monads::Do.for(:call)
 
-      def call(url)
-        url    = yield validate(url)
-        uri    = yield build_uri(url)
-        values = build_values(uri)
-        values = yield follow_redirect(values)
-        view   = yield prepare_presentation(values[:url])
-        result = yield build_presentation(view)
+      class InputContract < Contracts::PluginContract
+        params do
+          required(:domain).filled(Types::StrippedString)
+        end
 
-        Success(result)
+        rule(:domain).validate(:domain_format)
+      end
+
+      def call(input)
+        params = yield validate_contract(input_contract, input)
+        uri    = yield build_uri(params[:domain])
+        values = yield follow_redirect(build_values(uri))
+        result = yield prepare_presentation(values[:url])
+
+        Success(build_presentation(result))
       end
 
       def name
@@ -25,13 +31,8 @@ module Plugins
 
       protected
 
-      def validate(url)
-        return Failure('URL must be a string') unless url.is_a?(String)
-
-        url = url.strip
-        return Failure('URL must not be empty') if url.empty?
-
-        Success(url)
+      def input_contract
+        @input_contract ||= InputContract.new
       end
 
       def build_uri(url)
@@ -39,8 +40,6 @@ module Plugins
         uri = URI.parse(url)
 
         Success(uri)
-      rescue URI::InvalidURIError
-        Failure('Invalid URL')
       end
 
       def build_values(uri)

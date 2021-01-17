@@ -25,7 +25,7 @@ class App
   protected
 
   def detect_domain!(domain_name)
-    result = domain_detector.call(domain_name)
+    result = domain_detector.call(domain: domain_name)
 
     return result.value![:domain] if result.success?
 
@@ -33,7 +33,7 @@ class App
   end
 
   def detect_scheme!(domain_name)
-    result = scheme_detector.call(domain_name)
+    result = scheme_detector.call(domain: domain_name)
 
     return result.value![:scheme] if result.success?
 

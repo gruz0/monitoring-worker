@@ -8,17 +8,24 @@ module Plugins
     class HTTPStatus200Plugin < Base
       include Dry::Monads::Do.for(:call)
 
-      def call(opts)
-        values   = yield validate_opts(opts)
-        response = yield request_get(values[:host])
+      def call(input)
+        opts     = yield validate_opts(input)
+        values   = yield build_values(opts)
+        response = yield request_head(opts[:host], '/')
 
-        yield check_for_unexpected_status_code(values[:url], response[:code], 200)
+        yield check_for_unexpected_status_code(response, values, 200)
 
-        Success(yield build_presentation(success: true))
+        success
       end
 
       def name
         'HTTP Status 200'
+      end
+
+      protected
+
+      def build_values(opts)
+        Success(url: "#{opts[:host]}/")
       end
     end
   end

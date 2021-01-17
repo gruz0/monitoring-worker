@@ -8,14 +8,14 @@ module Plugins
     class NonExistentUrlReturns404Plugin < Base
       include Dry::Monads::Do.for(:call)
 
-      def call(opts)
-        values   = yield validate_opts(opts)
-        values   = yield build_values(values)
-        response = yield request_head(values[:host], values[:resource])
+      def call(input)
+        opts     = yield validate_opts(input)
+        values   = yield build_values(opts)
+        response = yield request_head(opts[:host], values[:resource])
 
-        yield check_for_unexpected_status_code(values[:url], response[:code], 404)
+        yield check_for_unexpected_status_code(response, values, 404)
 
-        Success(yield build_presentation(success: true))
+        success
       end
 
       def name
@@ -24,14 +24,12 @@ module Plugins
 
       protected
 
-      def build_values(values)
-        host   = values[:host]
+      def build_values(opts)
         random = generate_random
 
         Success(
-          host: host,
           resource: "/#{random}",
-          url: "#{host}/#{random}"
+          url: "#{opts[:host]}/#{random}"
         )
       end
 

@@ -6,28 +6,32 @@ class HTTPClient
   class Head < Base
     include Dry::Monads::Do.for(:call)
 
+    class InputContract < Contracts::PluginContract
+      params do
+        required(:host).filled(Types::StrippedString)
+        optional(:resource).filled(Types::StrippedString)
+      end
+
+      rule(:host) do
+        key.failure('host must have a scheme') unless value.start_with?('http://', 'https://')
+      end
+    end
+
     def call(host, resource)
       values   = yield validate(host, resource)
       response = yield request_head(values[:host], values[:resource])
-      result   = yield build_presentation(response)
 
-      Success(result)
+      Success(yield build_presentation(response))
     end
 
     protected
 
+    def input_contract
+      @input_contract ||= InputContract.new
+    end
+
     def validate(host, resource)
-      return Failure('Host must be a string') unless host.is_a?(String)
-      return Failure('Resource must be a string') unless resource.is_a?(String)
-
-      host     = host.to_s.strip
-      resource = resource.to_s.strip
-
-      return Failure('Host must not be empty') if host.empty?
-      return Failure('Host must have a scheme') unless valid_scheme?(host)
-      return Failure('Resource must not be empty') if resource.empty?
-
-      Success(host: host, resource: resource)
+      validate_contract(input_contract, host: host, resource: resource)
     end
 
     def request_head(host, resource)
@@ -52,10 +56,6 @@ class HTTPClient
       end
 
       Success(result)
-    end
-
-    def valid_scheme?(host)
-      host.start_with?('http://', 'https://')
     end
   end
 end

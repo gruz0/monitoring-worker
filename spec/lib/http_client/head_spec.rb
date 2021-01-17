@@ -5,42 +5,41 @@ RSpec.describe HTTPClient::Head do
 
   include_context 'logger'
 
-  let(:host) {}
-  let(:resource) {}
+  let(:host) { 'http://domain.tld' }
+  let(:resource) { '/' }
 
-  context 'when host is not a valid string' do
-    let(:host) { { url: 'not-a-host' } }
-    let(:resource) { '/' }
+  describe 'host' do
+    context 'when host is not a valid string' do
+      let(:host) { { url: 'not-a-host' } }
 
-    include_examples 'HTTPClient Failure', 'Host must be a string'
+      include_examples 'HTTPClient Failure', host: ['host must be a string']
+    end
+
+    context 'when host is empty' do
+      let(:host) { ' ' }
+
+      include_examples 'HTTPClient Failure', host: ['host must be filled']
+    end
+
+    context 'when host does not have valid scheme' do
+      let(:host) { 'domain.tld' }
+
+      include_examples 'HTTPClient Failure', host: ['host must have a scheme']
+    end
   end
 
-  context 'when resource is not a valid string' do
-    let(:host) { 'domain.tld' }
-    let(:resource) { { resource: 'not-a-resource' } }
+  describe 'resource' do
+    context 'when resource is not a valid string' do
+      let(:resource) { { resource: 'not-a-resource' } }
 
-    include_examples 'HTTPClient Failure', 'Resource must be a string'
-  end
+      include_examples 'HTTPClient Failure', resource: ['resource must be a string']
+    end
 
-  context 'when host is empty' do
-    let(:host) { ' ' }
-    let(:resource) { '/' }
+    context 'when resource is empty' do
+      let(:resource) { ' ' }
 
-    include_examples 'HTTPClient Failure', 'Host must not be empty'
-  end
-
-  context 'when host does not have valid scheme' do
-    let(:host) { 'domain.tld' }
-    let(:resource) { '/' }
-
-    include_examples 'HTTPClient Failure', 'Host must have a scheme'
-  end
-
-  context 'when resource is empty' do
-    let(:host) { 'http://domain.tld' }
-    let(:resource) { ' ' }
-
-    include_examples 'HTTPClient Failure', 'Resource must not be empty'
+      include_examples 'HTTPClient Failure', resource: ['resource must be filled']
+    end
   end
 
   context 'when HTTPClient raises exceptions' do

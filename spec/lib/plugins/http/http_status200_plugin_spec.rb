@@ -6,20 +6,30 @@ RSpec.describe Plugins::HTTP::HTTPStatus200Plugin do
   include_context 'set plugin opts'
   include_context 'set plugin name', 'HTTP Status 200'
 
-  include_examples 'validate plugin opts'
-
-  context 'when HTTPClient raises exceptions' do
-    let(:domain) { 'domain.tld' }
-
-    include_examples 'HTTPClient Exceptions', :get, 'domain.tld'
+  describe 'validate opts' do
+    include_examples 'validate plugin opts'
   end
 
-  include_examples 'Plugin success' do
-    let(:domain) { 'domain.tld' }
+  context 'when HTTPClient raises exceptions' do
+    include_examples 'HTTPClient Exceptions', :head, 'domain.tld'
+  end
 
-    before do
-      stub_request(:get, domain)
-        .to_return(status: 200)
+  context 'when HTTP Status is not expected' do
+    include_examples 'Plugin Failure with Message',
+                     'Expected URL [http://domain.tld/] returns [200] HTTP Status Code, got 204' do
+      before do
+        stub_request(:head, domain)
+          .to_return(status: 204)
+      end
+    end
+  end
+
+  context 'when HTTP Status is equal to expected' do
+    include_examples 'Plugin success' do
+      before do
+        stub_request(:head, domain)
+          .to_return(status: 200)
+      end
     end
   end
 end

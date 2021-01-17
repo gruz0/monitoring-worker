@@ -6,30 +6,32 @@ class HTTPClient
   class Get < Base
     include Dry::Monads::Do.for(:call)
 
+    class InputContract < Contracts::PluginContract
+      params do
+        required(:url).filled(Types::StrippedString)
+        optional(:limit).value(:integer)
+      end
+
+      rule(:limit) do
+        key.failure('too many HTTP redirects') if value.zero?
+      end
+    end
+
     def call(url, limit = 10)
       values   = yield validate(url, limit)
       response = yield request_get(values[:url], values[:limit])
-      result   = yield build_presentation(response)
 
-      Success(result)
+      Success(yield build_presentation(response))
     end
 
     protected
 
+    def input_contract
+      @input_contract ||= InputContract.new
+    end
+
     def validate(url, limit)
-      return Failure('URL must be a string') unless url.is_a?(String)
-      return Failure('Limit must be an integer') unless limit.is_a?(Integer)
-
-      url   = url.to_s.strip
-      limit = limit.to_i
-
-      return Failure('URL must not be empty') if url.empty?
-      return Failure('Too many HTTP redirects') if limit.zero?
-
-      Success(
-        url: url,
-        limit: limit
-      )
+      validate_contract(input_contract, url: url, limit: limit)
     end
 
     def request_get(url, limit)

@@ -3,112 +3,95 @@
 RSpec.describe Plugins::Content::DoesNotContainStringPlugin do
   subject(:execution) { described_class.new.call(opts) }
 
+  let(:enable) { 1 }
+  let(:resource) { '/resource' }
+  let(:value) { 'content' }
+  let(:meta) do
+    {
+      enable: enable,
+      resource: resource,
+      value: value
+    }
+  end
+
+  before { opts[:meta] = meta }
+
   include_context 'set plugin opts'
   include_context 'set plugin name', 'Does not Contain String'
 
-  include_examples 'validate plugin opts'
+  describe 'validate opts' do
+    include_examples 'validate plugin opts'
+  end
 
   include_examples 'validate plugin meta' do
-    context 'when meta does not have a resource' do
-      before do
-        opts[:meta] = { test: 1 }
+    describe ':resource' do
+      context 'when :resource is not a string' do
+        let(:resource) { false }
+
+        include_examples 'Plugin Failure', { meta: { resource: ['resource must be a string'] } }
       end
 
-      it { is_expected.to eq(Failure('Meta must have :resource')) }
+      context 'when :resource is empty' do
+        let(:resource) { '' }
+
+        include_examples 'Plugin Failure', { meta: { resource: ['resource must be filled'] } }
+      end
+
+      context 'when :resource does not have a leading slash' do
+        let(:resource) { 'resource' }
+
+        include_examples 'Plugin Failure', { meta: { resource: ['resource must be started with a leading slash'] } }
+      end
     end
 
-    context 'when meta[resource] is not a string' do
-      before do
-        opts[:meta] = { resource: 1 }
+    describe ':value' do
+      context 'when :value is not a string' do
+        let(:value) { false }
+
+        include_examples 'Plugin Failure', { meta: { value: ['value must be a string'] } }
       end
 
-      it { is_expected.to eq(Failure('Resource must be a string')) }
-    end
+      context 'when :value is empty' do
+        let(:value) { '' }
 
-    context 'when meta[resource] is empty' do
-      before do
-        opts[:meta] = { resource: ' ' }
+        include_examples 'Plugin Failure', { meta: { value: ['value must be filled'] } }
       end
-
-      it { is_expected.to eq(Failure('Resource must not be empty')) }
-    end
-
-    context 'when meta[resource] does not have leading slash' do
-      before do
-        opts[:meta] = { resource: 'resource' }
-      end
-
-      it { is_expected.to eq(Failure('Resource must be started with leading slash')) }
-    end
-
-    context 'when meta does not have value' do
-      before do
-        opts[:meta] = { resource: '/resource', test: 1 }
-      end
-
-      it { is_expected.to eq(Failure('Meta must have :value')) }
-    end
-
-    context 'when meta[value] is not a string' do
-      before do
-        opts[:meta] = { resource: '/resource', value: 1 }
-      end
-
-      it { is_expected.to eq(Failure('Value must be a string')) }
-    end
-
-    context 'when meta[value] is empty' do
-      before do
-        opts[:meta] = { resource: '/resource', value: ' ' }
-      end
-
-      it { is_expected.to eq(Failure('Value must not be empty')) }
     end
   end
 
   context 'when HTTPClient raises exceptions' do
-    let(:domain) { 'domain.tld' }
-
-    before do
-      opts[:meta] = { resource: '/resource', value: 'expected' }
-    end
-
     include_examples 'HTTPClient Exceptions', :get, 'domain.tld'
   end
 
   context 'when expected content exists' do
-    let(:domain) { 'domain.tld' }
-
     context 'when case matches' do
-      before do
-        opts[:meta] = { resource: '/resource', value: 'слово' }
+      include_examples 'Plugin Failure with Message', 'Expected content exists' do
+        let(:value) { 'слово' }
 
-        stub_request(:get, "http://#{domain}/resource")
-          .to_return(status: 200, body: 'слово')
+        before do
+          stub_request(:get, "http://#{domain}/resource")
+            .to_return(status: 200, body: 'слово')
+        end
       end
-
-      it { is_expected.to eq(Failure('Expected content exists')) }
     end
 
     context 'when case does not match' do
-      before do
-        opts[:meta] = { resource: '/resource', value: 'СЛОВО' }
+      include_examples 'Plugin Failure with Message', 'Expected content exists' do
+        let(:value) { 'СЛОВО' }
 
-        stub_request(:get, "http://#{domain}/resource")
-          .to_return(status: 200, body: 'слово')
+        before do
+          stub_request(:get, "http://#{domain}/resource")
+            .to_return(status: 200, body: 'слово')
+        end
       end
-
-      it { is_expected.to eq(Failure('Expected content exists')) }
     end
   end
 
   context 'when expected content does not exist' do
     include_examples 'Plugin success' do
-      let(:domain) { 'domain.tld' }
+      let(:value) { 'слово' }
 
       before do
-        opts[:meta] = { resource: '/resource', value: 'слово' }
-
         stub_request(:get, "http://#{domain}/resource")
           .to_return(status: 200, body: 'content')
       end

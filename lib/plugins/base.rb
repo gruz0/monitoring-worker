@@ -1,14 +1,18 @@
 # frozen_string_literal: true
 
+require 'dry/validation'
 require 'dry/monads'
 require 'dry/monads/do'
+require 'contracts/plugin_contract'
+
+Dry::Validation.load_extensions(:monads)
 
 module Plugins
   class PluginError < StandardError; end
 
   # Base class
   class Base
-    include Import[:logger, :http_client]
+    include Import[:logger, :http_client, 'utils.contract_validator', 'contracts.opts_contract']
     include Dry::Monads[:result]
 
     def call(_)
@@ -21,29 +25,16 @@ module Plugins
 
     private
 
-    def validate_opts(opts)
-      scheme = opts.fetch(:scheme) { return Failure('Scheme must be present') }
-      domain = opts.fetch(:domain) { return Failure('Domain must be present') }
-      host   = opts.fetch(:host) { return Failure('Host must be present') }
+    def validate_opts(input)
+      validate_contract(opts_contract, input)
+    end
 
-      scheme = scheme.to_s.strip
-      domain = domain.to_s.strip
-      host   = host.to_s.strip
+    def validate_contract(contract, input)
+      contract_validator.call(contract, input)
+    end
 
-      return Failure('Scheme must not be empty') if scheme.empty?
-      return Failure('Domain must not be empty') if domain.empty?
-      return Failure('Host must not be empty') if host.empty?
-
-      return Failure('Scheme must be one of: http or https') unless scheme.start_with?('http', 'https')
-      return Failure('Domain must not have a scheme') if valid_scheme?(domain)
-
-      return Failure('Host has invalid value') if host != "#{scheme}://#{domain}"
-
-      Success(
-        scheme: scheme,
-        domain: domain,
-        host: "#{scheme}://#{domain}"
-      )
+    def success
+      Success(build_presentation(success: true))
     end
 
     def request_head(host, resource)
@@ -54,13 +45,19 @@ module Plugins
       http_client.get(url)
     end
 
-    def check_for_unexpected_status_code(url, code, expected)
+    def check_for_unexpected_status_code(response, values, expected)
+      url  = values[:url]
+      code = response[:code]
+
       return Success(code) if code == expected
 
       Failure(format_error_message("URL [#{url}] returns [#{expected}] HTTP Status Code", code))
     end
 
-    def check_for_unexpected_location(url, location, expected)
+    def check_for_unexpected_location(response, values, expected)
+      url      = values[:url]
+      location = response[:location]
+
       message = "URL [#{url}] returns Location [#{expected}] in Response Headers"
 
       return Failure(format_error_message(message, 'empty')) if location.empty?
@@ -75,7 +72,7 @@ module Plugins
     end
 
     def build_presentation(response)
-      Success(plugin_meta.merge(response))
+      plugin_meta.merge(response)
     end
 
     protected

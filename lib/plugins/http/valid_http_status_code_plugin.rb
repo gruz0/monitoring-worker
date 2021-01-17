@@ -8,15 +8,27 @@ module Plugins
     class ValidHTTPStatusCodePlugin < Base
       include Dry::Monads::Do.for(:call)
 
-      def call(opts)
-        values   = yield validate_opts(opts)
-        meta     = yield validate_meta(opts)
-        values   = yield build_values(values, meta)
-        response = yield request_head(values[:host], values[:resource])
+      class MetaContract < Contracts::PluginContract
+        params do
+          required(:meta).filled(:hash).schema do
+            required(:enable).filled(:integer)
+            required(:resource).filled(Types::StrippedString)
+            required(:value).filled(:integer)
+          end
+        end
 
-        yield check_for_unexpected_status_code(values[:url], response[:code], values[:status_code])
+        rule(%i[meta resource]).validate(:leading_slash)
+      end
 
-        Success(yield build_presentation(success: true))
+      def call(input)
+        opts     = yield validate_opts(input)
+        meta     = yield validate_contract(meta_contract, input)
+        values   = yield build_values(opts, meta)
+        response = yield request_head(opts[:host], values[:resource])
+
+        yield check_for_unexpected_status_code(response, values, values[:status_code])
+
+        success
       end
 
       def name
@@ -25,37 +37,19 @@ module Plugins
 
       protected
 
-      def validate_meta(opts)
-        meta = opts.fetch(:meta) { return Failure('Meta must be present') }
-        return Failure('Meta must be a hash') unless meta.is_a?(Hash)
-
-        resource = meta.fetch(:resource) { return Failure('Meta must have :resource') }
-        return Failure('Resource must be a string') unless resource.is_a?(String)
-
-        resource = resource.strip
-        return Failure('Resource must not be empty') if resource.empty?
-
-        return Failure('Resource must be started with leading slash') if resource[0] != '/'
-
-        value = meta.fetch(:value) { return Failure('Meta must have :value') }
-        return Failure('Value must be an integer') unless value.is_a?(Integer)
-
-        Success(
-          resource: resource,
-          status_code: value
-        )
+      def meta_contract
+        @meta_contract ||= MetaContract.new
       end
 
-      def build_values(values, meta)
-        host     = values[:host]
-        resource = meta[:resource]
+      def build_values(opts, meta)
+        host     = opts[:host]
+        resource = meta[:meta][:resource]
         url      = "#{host}#{resource}"
 
         Success(
-          host: host,
           resource: resource,
           url: url,
-          status_code: meta[:status_code]
+          status_code: meta[:meta][:value]
         )
       end
     end
