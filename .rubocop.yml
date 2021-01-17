@@ -24,6 +24,9 @@ AllCops:
 #
 # Metrics
 #
+Metrics/BlockLength:
+  Exclude:
+    - spec/**/*
 
 #
 # Style

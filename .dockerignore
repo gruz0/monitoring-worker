@@ -2,11 +2,14 @@
 .git
 .github
 .gitignore
+.rspec
 .rubocop.yml
 .ruby-version
 
 bin/
+docs/
 env/
+spec/
 
 Dockerfile
 Makefile

@@ -16,9 +16,12 @@ Application.boot(:config) do
       config.validation_contract = Application.resolve('contracts.config_contract')
     end
 
-    Config.load_and_set_settings('config/settings.yml')
+    config_path = Application.env == :test ? 'config/settings/test.yml' : 'config/settings.yml'
+
+    Config.load_and_set_settings(config_path)
   rescue Config::Validation::Error => e
     puts e.message
+
     exit 1
   end
 

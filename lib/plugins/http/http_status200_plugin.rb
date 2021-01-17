@@ -6,28 +6,26 @@ module Plugins
   module HTTP
     # Checks for HTTP Status 200
     class HTTPStatus200Plugin < Base
-      def call(opts)
-        host = opts[:host]
+      include Dry::Monads::Do.for(:call)
 
-        response = http_client.get(host)
+      def call(input)
+        opts     = yield validate_opts(input)
+        values   = yield build_values(opts)
+        response = yield request_head(opts[:host], '/')
 
-        raise PluginError, format_error_message(prepare(host), response.code) if response.code != '200'
+        yield check_for_unexpected_status_code(response, values, 200)
 
         success
-      rescue PluginError => e
-        failure(e.message)
-      rescue HTTPClient::ClientError => e
-        failure(format_error_message(prepare(host), e.message))
       end
 
       def name
         'HTTP Status 200'
       end
 
-      private
+      protected
 
-      def prepare(url)
-        "URL [#{url}] has [200] HTTP Status Code"
+      def build_values(opts)
+        Success(url: "#{opts[:host]}/")
       end
     end
   end

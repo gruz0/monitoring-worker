@@ -6,20 +6,16 @@ module Plugins
   module HTTP
     # Checks for HTTP Status 404 for non-existent URL
     class NonExistentUrlReturns404Plugin < Base
-      def call(opts)
-        random = generate_random
-        host   = opts[:host]
-        url    = "#{host}/#{random}"
+      include Dry::Monads::Do.for(:call)
 
-        response = http_client.head(host, "/#{random}")
+      def call(input)
+        opts     = yield validate_opts(input)
+        values   = yield build_values(opts)
+        response = yield request_head(opts[:host], values[:resource])
 
-        check_for_unexpected_status_code(url, response, 404)
+        yield check_for_unexpected_status_code(response, values, 404)
 
         success
-      rescue PluginError => e
-        failure(e.message)
-      rescue HTTPClient::ClientError => e
-        failure(format_error_message(prepare(url), e.message))
       end
 
       def name
@@ -28,14 +24,17 @@ module Plugins
 
       protected
 
-      def generate_random
-        rand(36**36).to_s(36)
+      def build_values(opts)
+        random = generate_random
+
+        Success(
+          resource: "/#{random}",
+          url: "#{opts[:host]}/#{random}"
+        )
       end
 
-      private
-
-      def prepare(url)
-        "URL [#{url}] returns [404] HTTP Status Code"
+      def generate_random
+        rand(36**36).to_s(36)
       end
     end
   end

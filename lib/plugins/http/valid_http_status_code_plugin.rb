@@ -6,34 +6,51 @@ module Plugins
   module HTTP
     # Checks for valid HTTP Status Code
     class ValidHTTPStatusCodePlugin < Base
-      # rubocop:disable Metrics/MethodLength
-      def call(opts)
-        host        = opts[:host]
-        resource    = opts.dig(:meta, :resource)
-        status_code = opts.dig(:meta, :value)
+      include Dry::Monads::Do.for(:call)
 
-        url = "#{host}/#{resource}"
+      class MetaContract < Contracts::PluginContract
+        params do
+          required(:meta).filled(:hash).schema do
+            required(:enable).filled(:integer)
+            required(:resource).filled(Types::StrippedString)
+            required(:value).filled(:integer)
+          end
+        end
 
-        response = http_client.head(host, resource)
+        rule(%i[meta resource]).validate(:leading_slash)
+      end
 
-        check_for_unexpected_status_code(url, response, status_code)
+      def call(input)
+        opts     = yield validate_opts(input)
+        meta     = yield validate_contract(meta_contract, input)
+        values   = yield build_values(opts, meta)
+        response = yield request_head(opts[:host], values[:resource])
+
+        yield check_for_unexpected_status_code(response, values, values[:status_code])
 
         success
-      rescue PluginError => e
-        failure(e.message)
-      rescue HTTPClient::ClientError => e
-        failure(format_error_message(prepare(url, status_code), e.message))
       end
-      # rubocop:enable Metrics/MethodLength
 
       def name
         'Valid HTTP Status Code'
       end
 
-      private
+      protected
 
-      def prepare(url, value)
-        "URL [#{url}] has [#{value}] HTTP Status Code"
+      def meta_contract
+        @meta_contract ||= MetaContract.new
+      end
+
+      def build_values(opts, meta)
+        host     = opts[:host]
+        resource = meta[:meta][:resource]
+        url      = "#{host}#{resource}"
+
+        Success(
+          resource: resource,
+          url: url,
+          status_code: meta[:meta][:value]
+        )
       end
     end
   end
