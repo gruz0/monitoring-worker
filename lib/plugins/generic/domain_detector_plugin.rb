@@ -6,27 +6,43 @@ module Plugins
   module Generic
     # Returns domain without www
     class DomainDetectorPlugin < Base
-      def call(url)
-        raise ArgumentError, 'URL must not be empty' if url.to_s.strip.empty?
+      include Dry::Monads::Do.for(:call)
 
-        url = url.to_s.strip
+      def call(domain_name)
+        domain = yield validate(domain_name)
+        domain = yield remove_www(domain)
+        result = yield build_presentation(domain: domain)
 
-        success(host_without_www(url))
-      rescue StandardError => e
-        failure(e.message)
+        Success(result)
       end
 
       def name
         'Domain Detector'
       end
 
-      private
+      protected
 
-      def host_without_www(url)
-        uri = URI.parse(url)
-        uri = URI.parse("http://#{url}") if uri.scheme.nil?
-        host = uri.host.downcase
-        host.start_with?('www.') ? host[4..] : host
+      def validate(domain)
+        return Failure('Domain must be a string') unless domain.is_a?(String)
+
+        domain = domain.strip
+        return Failure('Domain must not be empty') if domain.empty?
+
+        Success(domain)
+      end
+
+      def remove_www(domain)
+        uri = URI.parse(domain)
+        uri = URI.parse("http://#{domain}") if uri.scheme.nil?
+
+        raise URI::InvalidURIError unless uri.host
+
+        host   = uri.host.downcase
+        domain = host.start_with?('www.') ? host[4..] : host
+
+        Success(domain)
+      rescue URI::InvalidURIError
+        Failure('Invalid domain name')
       end
     end
   end

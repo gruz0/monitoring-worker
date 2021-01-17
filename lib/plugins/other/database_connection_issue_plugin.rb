@@ -6,30 +6,29 @@ module Plugins
   module Other
     # Checks for database connection error message
     class DatabaseConnectionIssuePlugin < Base
+      include Dry::Monads::Do.for(:call)
+
       def call(opts)
-        host = opts[:host]
+        values   = yield validate_opts(opts)
+        response = yield request_get(values[:host])
 
-        response = http_client.get(host)
+        yield contains_string?(response[:body], 'access denied for user')
 
-        if response.body.downcase.include?('access denied for user')
-          raise PluginError, format_error_message(prepare(host), true)
-        end
-
-        success
-      rescue PluginError => e
-        failure(e.message)
-      rescue HTTPClient::ClientError => e
-        failure(format_error_message(prepare(host), e.message))
+        Success(yield build_presentation(success: true))
       end
 
       def name
         'Database Connection Issue'
       end
 
-      private
+      protected
 
-      def prepare(url)
-        "URL [#{url}] does not have database connection issue"
+      def contains_string?(body, expected)
+        content = body.downcase.force_encoding('UTF-8')
+
+        return Success() unless content.include?(expected)
+
+        Failure('Database connection error found')
       end
     end
   end

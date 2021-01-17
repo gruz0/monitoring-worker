@@ -6,30 +6,30 @@ module Plugins
   module HTTP
     # Checks for redirect from HTTP to HTTPS
     class HTTPToHttpsRedirectPlugin < Base
+      include Dry::Monads::Do.for(:call)
+
       def call(opts)
-        domain = opts[:domain]
-        url    = "http://#{domain}"
+        values   = yield validate_opts(opts)
+        values   = yield build_values(values)
+        response = yield request_head(values[:url], '/')
 
-        response = http_client.head(url, '/')
+        yield check_for_unexpected_status_code(values[:url], response[:code], 301)
+        yield check_for_unexpected_location(values[:url], response[:location], "https://#{values[:domain]}/")
 
-        check_for_unexpected_status_code(url, response, 301)
-        check_for_unexpected_location(url, response, "https://#{domain}/")
-
-        success
-      rescue PluginError => e
-        failure(e.message)
-      rescue HTTPClient::ClientError => e
-        failure(format_error_message(prepare(url), e.message))
+        Success(yield build_presentation(success: true))
       end
 
       def name
         'Redirect from HTTP to HTTPS'
       end
 
-      private
+      protected
 
-      def prepare(host)
-        "host [#{host}] has valid redirect from HTTP to HTTPS"
+      def build_values(values)
+        Success(
+          domain: values[:domain],
+          url: "http://#{values[:domain]}"
+        )
       end
     end
   end

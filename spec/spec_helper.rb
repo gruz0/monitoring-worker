@@ -2,6 +2,8 @@
 
 ENV['MONITORING_WORKER_ENV'] = 'test'
 
+Dir['./spec/support/**/*.rb'].sort.each { |file| require file }
+
 require 'dry/system/stubs'
 require 'dry/monads/all'
 
