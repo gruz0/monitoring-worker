@@ -20,7 +20,7 @@ Application.boot(:config) do
 
     Config.load_and_set_settings(config_path)
   rescue Config::Validation::Error => e
-    puts e.message
+    Application[:logger].fatal e.message
 
     exit 1
   end
