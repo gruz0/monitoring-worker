@@ -1,5 +1,8 @@
-!/env/example.env
 env/*.env
+!env/example.env
+
+log/*
+!/log/.keep
 
 spec/examples.txt
 

@@ -7,10 +7,15 @@
 .ruby-version
 
 bin/
+config/settings/*
 docs/
 env/
 spec/
 
+log/*
+!/log/.keep
+
 Dockerfile
 Makefile
 TODO
+*.md

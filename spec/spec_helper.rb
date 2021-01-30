@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 ENV['MONITORING_WORKER_ENV'] = 'test'
+ENV['MONITORING_WORKER_ID'] = 'test-worker-id'
 
 Dir['./spec/support/**/*.rb'].sort.each { |file| require file }
 
