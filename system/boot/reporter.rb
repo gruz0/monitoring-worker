@@ -6,6 +6,6 @@ Application.boot(:reporter) do
   start do
     kind = ENV.fetch('MONITORING_WORKER_REPORTER', :stdout).to_sym
 
-    register(:reporter, Utils::Reporter.new(kind))
+    register(:reporter, Utils::Reporter.new(kind: kind, logger: Application[:reporter_logger]))
   end
 end

@@ -43,8 +43,6 @@ class HTTPClient
 
       check_response!(response, limit)
     rescue ClientError => e
-      logger.warn "HTTPClient::Get#request_get #{e.message}"
-
       Failure(e.message)
     end
 

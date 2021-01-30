@@ -1,16 +1,10 @@
-.PHONY: help run build install_linters
+run: build-container
+	@./bin/run.sh $(DOMAIN)
 
-help:
-	@echo 'Available targets:'
-	@echo '  make run'
-	@echo '  make build'
-	@echo '  make install_linters'
-
-run: build
-	./bin/run.sh $(DOMAIN)
-
-build:
-	docker build -t monitoring-worker -f Dockerfile .
+build-container:
+	@docker build -t gruz0/monitoring-worker . > /dev/null
 
 install_linters:
 	bin/install_linters_dependencies.sh
+
+.PHONY: run build-container install_linters

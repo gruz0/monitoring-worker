@@ -4,7 +4,6 @@ module Contracts
   class ConfigContract < Dry::Validation::Contract
     # rubocop:disable Metrics/BlockLength
     params do
-      optional(:verbose).filled(:integer)
       required(:domain).filled(:string)
 
       required(:plugins).filled(:hash).schema do

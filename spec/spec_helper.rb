@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 ENV['MONITORING_WORKER_ENV'] = 'test'
+ENV['MONITORING_WORKER_ID'] = 'test-worker-id'
 
 Dir['./spec/support/**/*.rb'].sort.each { |file| require file }
 
@@ -9,7 +10,6 @@ require 'dry/monads/all'
 
 require_relative '../system/container'
 require_relative '../system/import'
-require_relative '../system/monitor'
 
 Application.enable_stubs!
 Application.finalize!

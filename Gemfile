@@ -10,8 +10,8 @@ end
 gem 'config'
 gem 'dry-events'
 gem 'dry-monads'
-gem 'dry-monitor'
 gem 'dry-system'
+gem 'logstash-logger'
 
 group :development, :test do
   gem 'rubocop', require: false
