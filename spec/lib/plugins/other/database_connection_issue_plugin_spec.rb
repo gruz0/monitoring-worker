@@ -4,7 +4,7 @@ RSpec.describe Plugins::Other::DatabaseConnectionIssuePlugin do
   subject(:execution) { described_class.new.call(opts) }
 
   include_context 'set plugin opts'
-  include_context 'set plugin name', 'Database Connection Issue'
+  include_context 'set plugin name', 'database_connection_issue'
 
   describe 'validate opts' do
     include_examples 'validate plugin opts'

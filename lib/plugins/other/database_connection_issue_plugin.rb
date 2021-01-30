@@ -18,7 +18,7 @@ module Plugins
       end
 
       def name
-        'Database Connection Issue'
+        build_filename(__FILE__)
       end
 
       protected
@@ -28,7 +28,7 @@ module Plugins
 
         return Success() unless content.include?(expected)
 
-        Failure('Database connection error found')
+        failure('Database connection error found')
       end
     end
   end

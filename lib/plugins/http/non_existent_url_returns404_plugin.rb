@@ -19,7 +19,7 @@ module Plugins
       end
 
       def name
-        'HTTP Status 404 for non-existent URL'
+        build_filename(__FILE__)
       end
 
       protected

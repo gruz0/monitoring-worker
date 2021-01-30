@@ -30,11 +30,19 @@ module Plugins
     end
 
     def validate_contract(contract, input)
-      contract_validator.call(contract, input)
+      result = contract_validator.call(contract, input)
+
+      return Success(result.value!) if result.success?
+
+      failure(convert_errors_to_string(result.failure))
     end
 
     def success
       Success(build_presentation(success: true))
+    end
+
+    def failure(error)
+      Failure(build_presentation(success: false, error: error))
     end
 
     def request_head(host, resource)
@@ -51,7 +59,7 @@ module Plugins
 
       return Success(code) if code == expected
 
-      Failure(format_error_message("URL [#{url}] returns [#{expected}] HTTP Status Code", code))
+      failure(format_error_message("URL [#{url}] returns [#{expected}] HTTP Status Code", code))
     end
 
     def check_for_unexpected_location(response, values, expected)
@@ -60,11 +68,11 @@ module Plugins
 
       message = "URL [#{url}] returns Location [#{expected}] in Response Headers"
 
-      return Failure(format_error_message(message, 'empty')) if location.empty?
+      return failure(format_error_message(message, 'empty')) if location.empty?
 
       return Success(location) if location == expected
 
-      Failure(format_error_message(message, location))
+      failure(format_error_message(message, location))
     end
 
     def valid_scheme?(url)
@@ -75,13 +83,21 @@ module Plugins
       plugin_meta.merge(response)
     end
 
+    def build_filename(path)
+      File.basename(path, '_plugin.rb')
+    end
+
     protected
 
     def plugin_meta
       {
-        plugin_class: self.class.name.to_s,
+        plugin_namespace: plugin_namespace(self.class),
         plugin_name: name
       }
+    end
+
+    def plugin_namespace(klass)
+      klass.name.split('::')[1].downcase
     end
 
     def format_error_message(expected, got)
@@ -90,6 +106,19 @@ module Plugins
 
     def error_message
       'Expected %s, got %s'
+    end
+
+    def convert_errors_to_string(errors)
+      errors.map do |_, error|
+        case error
+        when Array
+          error.join('; ')
+        when Hash
+          convert_errors_to_string(error)
+        else
+          error
+        end
+      end.join('; ')
     end
   end
 end

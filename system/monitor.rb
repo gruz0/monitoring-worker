@@ -26,4 +26,6 @@ def plugins_list
   end.flatten
 end
 
-plugins_list.each { |plugin| Application.monitor(plugin) { |event| log_plugin(event).call } }
+if Application.resolve('config').verbose == 1
+  plugins_list.each { |plugin| Application.monitor(plugin) { |event| log_plugin(event).call } }
+end

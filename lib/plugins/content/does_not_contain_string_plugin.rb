@@ -33,7 +33,7 @@ module Plugins
       end
 
       def name
-        'Does not Contain String'
+        build_filename(__FILE__)
       end
 
       protected
@@ -61,7 +61,7 @@ module Plugins
 
         return Success() unless content.include?(not_expected)
 
-        Failure('Expected content exists')
+        failure('Expected content exists')
       end
     end
   end

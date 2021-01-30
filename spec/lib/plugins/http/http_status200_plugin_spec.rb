@@ -4,7 +4,7 @@ RSpec.describe Plugins::HTTP::HTTPStatus200Plugin do
   subject(:execution) { described_class.new.call(opts) }
 
   include_context 'set plugin opts'
-  include_context 'set plugin name', 'HTTP Status 200'
+  include_context 'set plugin name', 'http_status200'
 
   describe 'validate opts' do
     include_examples 'validate plugin opts'

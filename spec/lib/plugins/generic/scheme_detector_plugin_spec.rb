@@ -3,13 +3,15 @@
 RSpec.describe Plugins::Generic::SchemeDetectorPlugin do
   subject(:execution) { described_class.new.call(input) }
 
+  include_context 'set plugin name', 'scheme_detector'
+
   let(:input) { {} }
 
   shared_examples 'SchemeDetectorPlugin Success' do |scheme|
     let(:attrs) do
       {
-        plugin_class: described_class.name,
-        plugin_name: 'Scheme Detector',
+        plugin_namespace: plugin_namespace(described_class),
+        plugin_name: 'scheme_detector',
         scheme: scheme
       }
     end
@@ -22,31 +24,31 @@ RSpec.describe Plugins::Generic::SchemeDetectorPlugin do
   context 'when domain is missing' do
     before { input.delete(:domain) }
 
-    include_examples 'Plugin Failure', { domain: ['domain is missing'] }
+    include_examples 'Plugin Failure', 'domain is missing'
   end
 
   context 'when domain is nil' do
     before { input[:domain] = nil }
 
-    include_examples 'Plugin Failure', { domain: ['domain must be filled'] }
+    include_examples 'Plugin Failure', 'domain must be filled'
   end
 
   context 'when domain is not a string' do
     before { input[:domain] = false }
 
-    include_examples 'Plugin Failure', { domain: ['domain must be a string'] }
+    include_examples 'Plugin Failure', 'domain must be a string'
   end
 
   context 'when domain is empty' do
     before { input[:domain] = ' ' }
 
-    include_examples 'Plugin Failure', { domain: ['domain must be filled'] }
+    include_examples 'Plugin Failure', 'domain must be filled'
   end
 
   context 'when domain could not be parsed' do
     before { input[:domain] = '"' }
 
-    include_examples 'Plugin Failure', { domain: ['domain is not valid'] }
+    include_examples 'Plugin Failure', 'domain is not valid'
   end
 
   context 'without scheme and resource' do
@@ -132,6 +134,40 @@ RSpec.describe Plugins::Generic::SchemeDetectorPlugin do
       input[:domain] = 'domain.tld'
     end
 
-    include_examples 'HTTPClient Exceptions', :head, 'domain.tld'
+    context 'when domain could not be resolved' do
+      before do
+        stub_request(:head, 'domain.tld')
+          .to_raise(SocketError)
+      end
+
+      include_examples 'Plugin Failure', 'Socket Error: Domain does not resolve'
+    end
+
+    context 'when SSL certificate is not valid' do
+      before do
+        stub_request(:head, 'domain.tld')
+          .to_raise(OpenSSL::SSL::SSLError)
+      end
+
+      include_examples 'Plugin Failure', 'SSL Error: Invalid certificate'
+    end
+
+    context 'when open connection timed out' do
+      before do
+        stub_request(:head, 'domain.tld')
+          .to_raise(Net::OpenTimeout)
+      end
+
+      include_examples 'Plugin Failure', 'Network Error: Open timeout'
+    end
+
+    context 'when read connection timed out' do
+      before do
+        stub_request(:head, 'domain.tld')
+          .to_raise(Timeout::Error)
+      end
+
+      include_examples 'Plugin Failure', 'Timeout Error: Reading from server'
+    end
   end
 end

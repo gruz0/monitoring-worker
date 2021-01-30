@@ -17,7 +17,7 @@ RSpec.describe Plugins::Content::ContainsStringPlugin do
   before { opts[:meta] = meta }
 
   include_context 'set plugin opts'
-  include_context 'set plugin name', 'Contains String'
+  include_context 'set plugin name', 'contains_string'
 
   describe 'validate opts' do
     include_examples 'validate plugin opts'
@@ -28,19 +28,19 @@ RSpec.describe Plugins::Content::ContainsStringPlugin do
       context 'when :resource is not a string' do
         let(:resource) { false }
 
-        include_examples 'Plugin Failure', { meta: { resource: ['resource must be a string'] } }
+        include_examples 'Plugin Failure', 'resource must be a string'
       end
 
       context 'when :resource is empty' do
         let(:resource) { '' }
 
-        include_examples 'Plugin Failure', { meta: { resource: ['resource must be filled'] } }
+        include_examples 'Plugin Failure', 'resource must be filled'
       end
 
       context 'when :resource does not have a leading slash' do
         let(:resource) { 'resource' }
 
-        include_examples 'Plugin Failure', { meta: { resource: ['resource must be started with a leading slash'] } }
+        include_examples 'Plugin Failure', 'resource must be started with a leading slash'
       end
     end
 
@@ -48,13 +48,13 @@ RSpec.describe Plugins::Content::ContainsStringPlugin do
       context 'when :value is not a string' do
         let(:value) { false }
 
-        include_examples 'Plugin Failure', { meta: { value: ['value must be a string'] } }
+        include_examples 'Plugin Failure', 'value must be a string'
       end
 
       context 'when :value is empty' do
         let(:value) { '' }
 
-        include_examples 'Plugin Failure', { meta: { value: ['value must be filled'] } }
+        include_examples 'Plugin Failure', 'value must be filled'
       end
     end
   end

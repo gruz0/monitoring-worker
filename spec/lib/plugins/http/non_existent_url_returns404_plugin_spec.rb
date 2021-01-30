@@ -4,7 +4,7 @@ RSpec.describe Plugins::HTTP::NonExistentUrlReturns404Plugin do
   subject(:execution) { described_class.new.call(opts) }
 
   include_context 'set plugin opts'
-  include_context 'set plugin name', 'HTTP Status 404 for non-existent URL'
+  include_context 'set plugin name', 'non_existent_url_returns404'
 
   describe 'validate opts' do
     include_examples 'validate plugin opts'

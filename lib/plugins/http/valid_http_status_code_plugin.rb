@@ -32,7 +32,7 @@ module Plugins
       end
 
       def name
-        'Valid HTTP Status Code'
+        build_filename(__FILE__)
       end
 
       protected

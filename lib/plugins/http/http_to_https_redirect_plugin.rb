@@ -20,7 +20,7 @@ module Plugins
       end
 
       def name
-        'Redirect from HTTP to HTTPS'
+        build_filename(__FILE__)
       end
 
       protected

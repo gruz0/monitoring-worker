@@ -33,7 +33,7 @@ module Plugins
       end
 
       def name
-        'Contains String'
+        build_filename(__FILE__)
       end
 
       protected
@@ -61,7 +61,7 @@ module Plugins
 
         return Success() if content.include?(expected)
 
-        Failure('Expected content does not exist')
+        failure('Expected content does not exist')
       end
     end
   end
