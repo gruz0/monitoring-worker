@@ -10,7 +10,6 @@ require 'dry/monads/all'
 
 require_relative '../system/container'
 require_relative '../system/import'
-require_relative '../system/monitor'
 
 Application.enable_stubs!
 Application.finalize!
