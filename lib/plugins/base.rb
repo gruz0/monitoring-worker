@@ -12,7 +12,7 @@ module Plugins
 
   # Base class
   class Base
-    include Import[:logger, :http_client, 'utils.contract_validator', 'contracts.opts_contract']
+    include Import[:plugin_logger, :http_client, 'utils.contract_validator', 'contracts.opts_contract']
     include Dry::Monads[:result]
 
     def call(_)
