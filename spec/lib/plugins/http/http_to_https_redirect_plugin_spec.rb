@@ -4,7 +4,7 @@ RSpec.describe Plugins::HTTP::HTTPToHttpsRedirectPlugin do
   subject(:execution) { described_class.new.call(opts) }
 
   include_context 'set plugin opts'
-  include_context 'set plugin name', 'Redirect from HTTP to HTTPS'
+  include_context 'set plugin name', 'http_to_https_redirect'
 
   describe 'validate opts' do
     include_examples 'validate plugin opts'

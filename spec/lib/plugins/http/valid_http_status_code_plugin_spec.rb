@@ -17,7 +17,7 @@ RSpec.describe Plugins::HTTP::ValidHTTPStatusCodePlugin do
   before { opts[:meta] = meta }
 
   include_context 'set plugin opts'
-  include_context 'set plugin name', 'Valid HTTP Status Code'
+  include_context 'set plugin name', 'valid_http_status_code'
 
   describe 'validate opts' do
     include_examples 'validate plugin opts'
@@ -28,19 +28,19 @@ RSpec.describe Plugins::HTTP::ValidHTTPStatusCodePlugin do
       context 'when :resource is not a string' do
         let(:resource) { false }
 
-        include_examples 'Plugin Failure', { meta: { resource: ['resource must be a string'] } }
+        include_examples 'Plugin Failure', 'resource must be a string'
       end
 
       context 'when :resource is empty' do
         let(:resource) { '' }
 
-        include_examples 'Plugin Failure', { meta: { resource: ['resource must be filled'] } }
+        include_examples 'Plugin Failure', 'resource must be filled'
       end
 
       context 'when :resource does not have a leading slash' do
         let(:resource) { 'resource' }
 
-        include_examples 'Plugin Failure', { meta: { resource: ['resource must be started with a leading slash'] } }
+        include_examples 'Plugin Failure', 'resource must be started with a leading slash'
       end
     end
 
@@ -48,13 +48,13 @@ RSpec.describe Plugins::HTTP::ValidHTTPStatusCodePlugin do
       context 'when :value is not an integer' do
         let(:value) { 'test' }
 
-        include_examples 'Plugin Failure', { meta: { value: ['value must be an integer'] } }
+        include_examples 'Plugin Failure', 'value must be an integer'
       end
 
       context 'when :value is empty' do
         let(:value) { '' }
 
-        include_examples 'Plugin Failure', { meta: { value: ['value must be filled'] } }
+        include_examples 'Plugin Failure', 'value must be filled'
       end
     end
   end

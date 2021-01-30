@@ -20,7 +20,7 @@ module Plugins
       end
 
       def name
-        'Redirect from www to non-www'
+        build_filename(__FILE__)
       end
 
       protected

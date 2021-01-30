@@ -19,7 +19,7 @@ module Plugins
       end
 
       def name
-        'HTTP Status 200'
+        build_filename(__FILE__)
       end
 
       protected

@@ -19,7 +19,7 @@ class HTTPClient
       contract_validator.call(contract, input)
     end
 
-    def start(uri, &block)
+    def start(uri, &block) # rubocop:disable Metrics/MethodLength
       Net::HTTP.start(uri.host, uri.port, options(uri), &block)
     rescue SocketError
       Failure('Socket Error: Domain does not resolve')
@@ -29,6 +29,8 @@ class HTTPClient
       Failure('Network Error: Open timeout')
     rescue Timeout::Error
       Failure('Timeout Error: Reading from server')
+    rescue StandardError => e
+      Failure(e.message)
     end
 
     protected

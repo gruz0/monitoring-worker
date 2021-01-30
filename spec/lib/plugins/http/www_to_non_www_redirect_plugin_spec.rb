@@ -4,7 +4,7 @@ RSpec.describe Plugins::HTTP::WwwToNonWwwRedirectPlugin do
   subject(:execution) { described_class.new.call(opts) }
 
   include_context 'set plugin opts'
-  include_context 'set plugin name', 'Redirect from www to non-www'
+  include_context 'set plugin name', 'www_to_non_www_redirect'
 
   describe 'validate opts' do
     include_examples 'validate plugin opts'

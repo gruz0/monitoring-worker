@@ -1,13 +1,22 @@
 # frozen_string_literal: true
 
+require 'dry/events/listener'
 require_relative 'system/boot'
 
-app    = Application[:app]
-config = Application[:config]
-logger = Application[:logger]
+include Dry::Events::Listener[:app_publisher]
 
-result = app.call(config.domain, config.plugins.to_hash)
+app      = Application[:app]
+config   = Application[:config]
+reporter = Application[:reporter]
 
-result.each do |r|
-  logger.debug r
+subscribe(:checked) do |payload|
+  reporter.call(
+    domain: config.domain,
+    opts: payload[:opts],
+    meta: payload[:meta],
+    report: payload[:report],
+    took: payload[:took]
+  )
 end
+
+app.call(config.domain, config.plugins.to_hash)

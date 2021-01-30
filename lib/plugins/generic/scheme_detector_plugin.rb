@@ -26,7 +26,7 @@ module Plugins
       end
 
       def name
-        'Scheme Detector'
+        build_filename(__FILE__)
       end
 
       protected
@@ -56,7 +56,7 @@ module Plugins
       def follow_redirect(values)
         head = request_head(values[:host], values[:request_uri])
 
-        return head if head.failure?
+        return failure(head.failure) if head.failure?
 
         return Success(values) unless redirect?(head.value![:response])
 

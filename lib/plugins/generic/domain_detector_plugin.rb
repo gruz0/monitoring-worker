@@ -24,7 +24,7 @@ module Plugins
       end
 
       def name
-        'Domain Detector'
+        build_filename(__FILE__)
       end
 
       protected
